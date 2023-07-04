@@ -6,7 +6,7 @@ from memory_profiler import memory_usage
 
 
 def find_best_sgd_parameters():
-    ratings_data = pd.read_json("yelp_100_data/ratings.json")
+    ratings_data = pd.read_json("yelp_1000_data/ratings.json")
     ratings_data.drop(columns=['ReviewID'], axis=1, inplace=True)
     uid_to_int = {uid: iid for iid, uid in enumerate(ratings_data['UserID'].unique())}
     pid_to_int = {pid: iid for iid, pid in enumerate(ratings_data['PlaceID'].unique())}
@@ -113,11 +113,11 @@ def sgd_and_svd_evaluation():
 
     ratings_data_path = {
         '100_data': 'yelp_100_data/ratings.json',
-        # '1000_data': 'yelp_1000_data/ratings.json',
-        # '2000_data': 'yelp_2000_data/ratings.json',
-        # '3000_data': 'yelp_3000_data/ratings.json',
-        # '4000_data': 'yelp_4000_data/ratings.json',
-        # '5000_data': 'yelp_5000_data/ratings.json',
+        '1000_data': 'yelp_1000_data/ratings.json',
+        '2000_data': 'yelp_2000_data/ratings.json',
+        '3000_data': 'yelp_3000_data/ratings.json',
+        '4000_data': 'yelp_4000_data/ratings.json',
+        '5000_data': 'yelp_5000_data/ratings.json',
     }
 
     evaluation_result = pd.DataFrame(
@@ -205,6 +205,7 @@ def sgd_and_svd_evaluation():
                 }, index=[0])
             ], ignore_index=True)
             evaluation_result.to_csv('evaluation_result/evaluation_result_sgd_and_svd.csv', index=False)
+    print(f"Finished evaluating SGD and SVD")
 
 
 if __name__ == "__main__":
