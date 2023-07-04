@@ -156,12 +156,12 @@ def svd_worker_func(args):
 def sgd_and_svd_evaluation():
     # Find best parameters for SGD
     logging.info('Starting sgd_and_svd_evaluation')
-    print('Finding best parameters for SGD...')
-    best_params, result_of_finding_best_params = find_best_sgd_parameters()
-    result_of_finding_best_params.to_csv('evaluation_result/result_of_finding_best_params_for_sgd.csv', index=False)
+    # print('Finding best parameters for SGD...')
+    # best_params, result_of_finding_best_params = find_best_sgd_parameters()
+    # result_of_finding_best_params.to_csv('evaluation_result/result_of_finding_best_params_for_sgd.csv', index=False)
 
-    sgd_iterations = best_params['iterations']
-    sgd_factors = best_params['factors']
+    sgd_iterations = 100
+    sgd_factors = 40
     sgd_learning_rate = .001
     sgd_regularization = .02
 
@@ -186,13 +186,13 @@ def sgd_and_svd_evaluation():
     ]
 
     args_sgd = [(rs, data_name, data_path, sgd_iterations, sgd_factors, sgd_learning_rate, sgd_regularization) for data_name, data_path in ratings_data_path.items() for rs in random_states]
-    args_svd = [(rs, data_name, data_path) for data_name, data_path in ratings_data_path.items() for rs in random_states]
+
 
     with Pool() as p:
         results_sgd = p.map(sgd_worker_func, args_sgd)
-        results_svd = p.map(svd_worker_func, args_svd)
 
-    for result in results_sgd + results_svd:
+
+    for result in results_sgd:
         evaluation_result = pd.concat([
             evaluation_result,
             pd.DataFrame({
@@ -205,7 +205,27 @@ def sgd_and_svd_evaluation():
                 'memory_usage': result[6]
             }, index=[0])
         ], ignore_index=True)
-    evaluation_result.to_csv('evaluation_result/evaluation_result_sgd_and_svd.csv', index=False)
+    evaluation_result.to_csv('evaluation_result/evaluation_result_sgd.csv', index=False)
+
+    args_svd = [(rs, data_name, data_path) for data_name, data_path in ratings_data_path.items() for rs in
+                random_states]
+    with Pool(processes=4) as p:
+        results_svd = p.map(svd_worker_func, args_svd)
+
+    for result in results_svd:
+        evaluation_result = pd.concat([
+            evaluation_result,
+            pd.DataFrame({
+                'data_name': result[0],
+                'rs': result[1],
+                'train_rmse': result[2],
+                'test_rmse': result[3],
+                'time_usage': result[4],
+                'algo': result[5],
+                'memory_usage': result[6]
+            }, index=[0])
+        ], ignore_index=True)
+    evaluation_result.to_csv('evaluation_result/evaluation_result_svd.csv', index=False)
 
     print(f"Finished evaluating SGD and SVD")
     logging.info('Finished evaluating SGD and SVD')
