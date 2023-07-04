@@ -24,7 +24,7 @@ def find_best_sgd_parameters():
         16, 61, 5, 28, 87, 33
     ]
 
-    iterations = [10] #, 25, 50, 100, 200]
+    iterations = [10, 25, 50, 100, 200]
     latent_factors = [10, 20, 40, 80]
     learning_rate = .001
     regularization = .02
