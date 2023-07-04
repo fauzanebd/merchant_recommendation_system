@@ -12,7 +12,8 @@ import logging
 
 
 
-def parameter_finder_worker_func(rs, k, iterations, learning_rate, regularization, user_ids, place_ids, ratings_data):
+def parameter_finder_worker_func(params_tuple, iterations, learning_rate, regularization, user_ids, place_ids, ratings_data):
+    rs, k = params_tuple
     logging.info('Running parameter_finder_worker_func with rs=%s, k=%s', rs, k)
     train_data, test_data = train_test_split_special(
         ratings_data,
