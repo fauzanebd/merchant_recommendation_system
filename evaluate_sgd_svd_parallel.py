@@ -209,7 +209,7 @@ def sgd_and_svd_evaluation():
 
     args_svd = [(rs, data_name, data_path) for data_name, data_path in ratings_data_path.items() for rs in
                 random_states]
-    with Pool(processes=4) as p:
+    with Pool(processes=5) as p:
         results_svd = p.map(svd_worker_func, args_svd)
 
     for result in results_svd:
