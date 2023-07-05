@@ -125,6 +125,12 @@ def sgd_worker_func(args):
     time_usage = end_time - start_time
     return data_name, rs, train_rmse, test_rmse, time_usage, 'sgd', mem_usage
 
+def wrapper(func, *args, **kwargs):
+    def wrapped():
+        return func(*args, **kwargs)
+
+    return wrapped
+
 def svd_worker_func(args):
     logging.info('Starting svd_worker_func with args=%s', args)
     rs, data_name, data_path = args
@@ -145,11 +151,11 @@ def svd_worker_func(args):
         'test_data': test_data,
     }
     start_time = time.time()
-    start_mem = psutil.Process(os.getpid()).memory_info().rss / (1024 ** 2)
-    train_rmse, test_rmse = calculate_svd_performance(**parameters_svd)
-    end_mem = psutil.Process(os.getpid()).memory_info().rss / (1024 ** 2)
+    wrapped = wrapper(calculate_svd_performance, **parameters_svd)
+    mem_usage, train_rmse, test_rmse = memory_usage(wrapped, retval=True)
+    mem_usage = max(mem_usage)  # MB
     end_time = time.time()
-    mem_usage = end_mem - start_mem  # MB
+
     time_usage = end_time - start_time
     return data_name, rs, train_rmse, test_rmse, time_usage, 'svd', mem_usage
 
@@ -209,7 +215,7 @@ def sgd_and_svd_evaluation():
 
     args_svd = [(rs, data_name, data_path) for data_name, data_path in ratings_data_path.items() for rs in
                 random_states]
-    with Pool(processes=5) as p:
+    with Pool(processes=2) as p:
         results_svd = p.map(svd_worker_func, args_svd)
 
     for result in results_svd:

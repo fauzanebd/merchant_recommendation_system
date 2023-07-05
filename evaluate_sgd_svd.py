@@ -113,15 +113,21 @@ def sgd_and_svd_evaluation():
 
     ratings_data_path = {
         '100_data': 'yelp_100_data/ratings.json',
-        '1000_data': 'yelp_1000_data/ratings.json',
-        '2000_data': 'yelp_2000_data/ratings.json',
-        '3000_data': 'yelp_3000_data/ratings.json',
-        '4000_data': 'yelp_4000_data/ratings.json',
-        '5000_data': 'yelp_5000_data/ratings.json',
+        # '1000_data': 'yelp_1000_data/ratings.json',
+        # '2000_data': 'yelp_2000_data/ratings.json',
+        # '3000_data': 'yelp_3000_data/ratings.json',
+        # '4000_data': 'yelp_4000_data/ratings.json',
+        # '5000_data': 'yelp_5000_data/ratings.json',
     }
 
     evaluation_result = pd.DataFrame(
         columns=['data_name', 'rs', 'train_rmse', 'test_rmse', 'memory_usage', 'time_usage', 'algo'])
+
+    def wrapper(func, *args, **kwargs):
+        def wrapped():
+            return func(*args, **kwargs)
+
+        return wrapped
 
     print('Evaluating SGD and SVD...')
     for data_name, data_path in ratings_data_path.items():
@@ -158,12 +164,6 @@ def sgd_and_svd_evaluation():
                 'train_data': train_data,
                 'test_data': test_data
             }
-
-            def wrapper(func, *args, **kwargs):
-                def wrapped():
-                    return func(*args, **kwargs)
-
-                return wrapped
 
             wrapped = wrapper(evaluate_best_parameter_sgd_performance, **parameters_sgd)
             start_time = time.time()
