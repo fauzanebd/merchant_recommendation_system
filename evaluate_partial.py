@@ -31,13 +31,16 @@ def svd_worker_func(args):
             'train_data': train_data,
             'test_data': test_data,
         }
+        logging.info('calculating svd performance...')
         start_time = time.time()
         start_mem = psutil.Process(os.getpid()).memory_info().rss
         train_rmse, test_rmse = calculate_svd_performance(**parameters_svd)
         end_mem = psutil.Process(os.getpid()).memory_info().rss
         end_time = time.time()
+        logging.info('svd performance calculated')
         mem_usage = end_mem - start_mem  #
         time_usage = end_time - start_time
+        logging.info('svd_worker_func finished with args=%s', args)
         return data_name, rs, train_rmse, test_rmse, time_usage, 'svd', mem_usage
     except MemoryError:
         logging.error('Memory error occurred, args=%s', args)
