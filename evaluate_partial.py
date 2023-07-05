@@ -55,6 +55,8 @@ def get_num_processes(data_size):
         return 6
     elif data_size <= 3000:
         return 5
+    elif data_size <= 4000:
+        return 4
     else:  # data_size > 3000
         return 3
 
