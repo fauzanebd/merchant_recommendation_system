@@ -52,12 +52,12 @@ def svd_evaluation():
     logging.info('Starting svd_evaluation')
 
     ratings_data_path = {
-        # '100_data': 'yelp_100_data/ratings.json',
+        '100_data': 'yelp_100_data/ratings.json',
         # '1000_data': 'yelp_1000_data/ratings.json',
         # '2000_data': 'yelp_2000_data/ratings.json',
         # '3000_data': 'yelp_3000_data/ratings.json',
-        '4000_data': 'yelp_4000_data/ratings.json',
-        '5000_data': 'yelp_5000_data/ratings.json',
+        # '4000_data': 'yelp_4000_data/ratings.json',
+        # '5000_data': 'yelp_5000_data/ratings.json',
     }
 
     evaluation_result = pd.DataFrame(
@@ -73,8 +73,8 @@ def svd_evaluation():
 
     for data_name, data_path in sorted(ratings_data_path.items(), key=lambda x: int(x[0].split('_')[0])):
         args_svd = [(rs, data_name, data_path) for rs in random_states]
-        results_svd = ray.get([svd_worker_func.remote(arg) for arg in args_svd])
-
+        results_svd = [svd_worker_func.options(memory=16 * 1024 * 1024 * 1024).remote(arg) for arg in args_svd]
+        results_svd = ray.get(results_svd)
         for result in results_svd:
             evaluation_result = pd.concat([
                 evaluation_result,
@@ -90,6 +90,24 @@ def svd_evaluation():
             ], ignore_index=True)
             evaluation_result.to_csv('evaluation_result/evaluation_result_svd_4k5k.csv', index=False)
 
+        # args_svd = [(rs, data_name, data_path) for rs in random_states]
+        # results_svd = ray.get([svd_worker_func.remote(arg) for arg in args_svd])
+        #
+        # for result in results_svd:
+        #     evaluation_result = pd.concat([
+        #         evaluation_result,
+        #         pd.DataFrame({
+        #             'data_name': result[0],
+        #             'rs': result[1],
+        #             'train_rmse': result[2],
+        #             'test_rmse': result[3],
+        #             'time_usage': result[4],
+        #             'algo': result[5],
+        #             'memory_usage': result[6]
+        #         }, index=[0])
+        #     ], ignore_index=True)
+        #     evaluation_result.to_csv('evaluation_result/evaluation_result_svd_4k5k.csv', index=False)
+
     print(f"Finished evaluating SGD and SVD")
     logging.info('Finished evaluating SGD and SVD')
 
@@ -99,6 +117,7 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO,
                         format='%(asctime)s:%(levelname)s:%(message)s')
     os.environ["RAY_DEDUP_LOGS"] = "0"
+    os.environ["RAY_memory_monitor_refresh_ms"] = "0"
     # Initialize ray
     ray.init()
 
