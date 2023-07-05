@@ -56,8 +56,8 @@ def svd_evaluation():
         # '1000_data': 'yelp_1000_data/ratings.json',
         # '2000_data': 'yelp_2000_data/ratings.json',
         # '3000_data': 'yelp_3000_data/ratings.json',
-        '4000_data': 'yelp_4000_data/ratings.json',
-        # '5000_data': 'yelp_5000_data/ratings.json',
+        # '4000_data': 'yelp_4000_data/ratings.json',
+        '5000_data': 'yelp_5000_data/ratings.json',
     }
 
     evaluation_result = pd.DataFrame(
