@@ -55,9 +55,12 @@ def evaluate_sgd_and_svd_efficiency():
             print('Random state: {}'.format(rs))
             parameters_sgd = {
                 'iterations': [sgd_iterations],
-                'factors': sgd_factors,
+                'n_factors': sgd_factors,
                 'learning_rate': sgd_lr,
-                'regularization': sgd_reg,
+                'user_bias_reg': sgd_reg,
+                'place_bias_reg': sgd_reg,
+                'user_reg': sgd_reg,
+                'place_reg': sgd_reg,
                 'user_ids': user_ids,
                 'place_ids': place_ids,
                 'train_data': train_data,
