@@ -58,7 +58,7 @@ def get_num_processes(data_size):
     elif data_size <= 4000:
         return 4
     else:  # data_size > 3000
-        return 3
+        return 1
 
 
 def svd_evaluation():
@@ -70,7 +70,7 @@ def svd_evaluation():
         # '1000_data': 'yelp_1000_data/ratings.json',
         # '2000_data': 'yelp_2000_data/ratings.json',
         # '3000_data': 'yelp_3000_data/ratings.json',
-        '4000_data': 'yelp_4000_data/ratings.json',
+        # '4000_data': 'yelp_4000_data/ratings.json',
         '5000_data': 'yelp_5000_data/ratings.json',
     }
 
@@ -93,6 +93,7 @@ def svd_evaluation():
             with Pool() as p:
                 results_svd = p.map(svd_worker_func, args_svd)
         else:
+            print(f'Using {num_processes} processes')
             with Pool(processes=num_processes) as p:
                 results_svd = p.map(svd_worker_func, args_svd)
 
@@ -109,7 +110,7 @@ def svd_evaluation():
                     'memory_usage': result[6]
                 }, index=[0])
             ], ignore_index=True)
-            evaluation_result.to_csv('evaluation_result/evaluation_result_svd_4k5k.csv', index=False)
+            evaluation_result.to_csv('evaluation_result/evaluation_result_svd_5k.csv', index=False)
 
     print(f"Finished evaluating SGD and SVD")
     logging.info('Finished evaluating SGD and SVD')
