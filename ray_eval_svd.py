@@ -52,7 +52,7 @@ def svd_evaluation():
     logging.info('Starting svd_evaluation')
 
     ratings_data_path = {
-        '100_data': 'yelp_100_data/ratings.json',
+        # '100_data': 'yelp_100_data/ratings.json',
         # '1000_data': 'yelp_1000_data/ratings.json',
         # '2000_data': 'yelp_2000_data/ratings.json',
         # '3000_data': 'yelp_3000_data/ratings.json',
@@ -98,7 +98,7 @@ if __name__ == '__main__':
     # Setting up logging
     logging.basicConfig(level=logging.INFO,
                         format='%(asctime)s:%(levelname)s:%(message)s')
-
+    os.environ["RAY_DEDUP_LOGS"] = "0"
     # Initialize ray
     ray.init()
 
