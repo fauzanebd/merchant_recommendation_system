@@ -26,7 +26,11 @@ def evaluate_sgd_and_svd_efficiency():
         # '5000_data': 'yelp_5000_data/ratings.json',
     }
 
-    evaluation_result = pd.DataFrame(columns=['memory_usage', 'train_time', 'algo'])
+    # evaluation_result = pd.DataFrame(columns=['memory_usage', 'train_time', 'algo'])
+
+    evaluation_result_sgd = pd.DataFrame(columns=['memory_usage', 'train_time', 'algo'])
+    evaluation_result_svd = pd.DataFrame(columns=['memory_usage', 'train_time', 'algo'])
+
     for data_name, data_path in ratings_data_path.items():
         random_states = [
             73,
@@ -69,18 +73,20 @@ def evaluate_sgd_and_svd_efficiency():
                 **parameters_sgd
             )
             mem_usage, train_time = memory_usage(wrapped, retval=True)
+            mem_usage = max(mem_usage)
 
-            evaluation_result = pd.concat([
-                evaluation_result,
+            evaluation_result_sgd = pd.concat([
+                evaluation_result_sgd,
                 pd.DataFrame({
-                    'memory_usage': mem_usage,
-                    'train_time': train_time,
-                    'algo': 'sgd',
-                    'data_name': data_name,
-                    'random_state': rs
+                    'memory_usage': [mem_usage],
+                    'train_time': [train_time],
+                    'algo': ['sgd'],
+                    'data_name': [data_name],
+                    'random_state': [rs]
                 })
             ], ignore_index=True)
-            evaluation_result.to_csv('evaluation_result/efficiency_evaluation_result_sgd.csv', index=False)
+            evaluation_result_sgd.to_csv('evaluation_result/efficiency_evaluation_result_sgd.csv', index=False)
+
 
             parameters_svd = {
                 'train_data': train_data,
@@ -91,18 +97,19 @@ def evaluate_sgd_and_svd_efficiency():
                 **parameters_svd
             )
             mem_usage, train_time = memory_usage(wrapped, retval=True)
+            mem_usage = max(mem_usage)
 
-            evaluation_result = pd.concat([
-                evaluation_result,
+            evaluation_result_svd = pd.concat([
+                evaluation_result_svd,
                 pd.DataFrame({
-                    'memory_usage': mem_usage,
-                    'train_time': train_time,
-                    'algo': 'svd',
-                    'data_name': data_name,
-                    'random_state': rs
+                    'memory_usage': [mem_usage],
+                    'train_time': [train_time],
+                    'algo': ['svd'],
+                    'data_name': [data_name],
+                    'random_state': [rs]
                 })
             ], ignore_index=True)
-            evaluation_result.to_csv('evaluation_result/efficiency_evaluation_result_svd.csv', index=False)
+            evaluation_result_svd.to_csv('evaluation_result/efficiency_evaluation_result_svd.csv', index=False)
 
         print(f"Done evaluating efficiency for {data_name} data")
 
