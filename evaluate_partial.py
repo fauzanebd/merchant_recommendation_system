@@ -33,12 +33,10 @@ def svd_worker_func(args):
         }
         logging.info('calculating svd performance...')
         start_time = time.time()
-        start_mem = psutil.Process(os.getpid()).memory_info().rss
         train_rmse, test_rmse = calculate_svd_performance(**parameters_svd)
-        end_mem = psutil.Process(os.getpid()).memory_info().rss
         end_time = time.time()
         logging.info('svd performance calculated')
-        mem_usage = end_mem - start_mem  #
+        mem_usage = 0
         time_usage = end_time - start_time
         logging.info('svd_worker_func finished with args=%s', args)
         return data_name, rs, train_rmse, test_rmse, time_usage, 'svd', mem_usage
@@ -59,9 +57,9 @@ def get_num_processes(data_size):
     elif data_size <= 3000:
         return 5
     elif data_size <= 4000:
-        return 4
+        return 1
     else:  # data_size > 3000
-        return 2
+        return 1
 
 
 def svd_evaluation():
@@ -83,9 +81,10 @@ def svd_evaluation():
     print('Evaluating SVD...')
 
     random_states = [
-        73, 57, 89, 26, 91, 34, 10, 64, 7, 51, 95, 13,
-        42, 70, 18, 83, 29, 38, 76, 3, 68, 24, 49, 81,
-        16, 61, 5, 28, 87, 33
+        73, 57, 89,
+        # 26, 91, 34, 10, 64, 7, 51, 95, 13,
+        # 42, 70, 18, 83, 29, 38, 76, 3, 68, 24, 49, 81,
+        # 16, 61, 5, 28, 87, 33
     ]
 
     for data_name, data_path in sorted(ratings_data_path.items(), key=lambda x: int(x[0].split('_')[0])):
@@ -113,7 +112,7 @@ def svd_evaluation():
                     'memory_usage': result[6]
                 }, index=[0])
             ], ignore_index=True)
-            evaluation_result.to_csv('evaluation_result/evaluation_result_svd_5k.csv', index=False)
+            evaluation_result.to_csv('evaluation_result/evaluation_result_svd_timesurer.csv', index=False)
 
     print(f"Finished evaluating SGD and SVD")
     logging.info('Finished evaluating SGD and SVD')
