@@ -107,7 +107,7 @@ def svd_evaluation():
                     'memory_usage': result[6]
                 }, index=[0])
             ], ignore_index=True)
-            evaluation_result.to_csv('evaluation_result/evaluation_result_svd.csv', index=False)
+            evaluation_result.to_csv('evaluation_result/evaluation_result_svd_4k5k.csv', index=False)
 
     print(f"Finished evaluating SGD and SVD")
     logging.info('Finished evaluating SGD and SVD')
