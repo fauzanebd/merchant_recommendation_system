@@ -113,21 +113,15 @@ def sgd_and_svd_evaluation():
 
     ratings_data_path = {
         '100_data': 'yelp_100_data/ratings.json',
-        # '1000_data': 'yelp_1000_data/ratings.json',
-        # '2000_data': 'yelp_2000_data/ratings.json',
-        # '3000_data': 'yelp_3000_data/ratings.json',
-        # '4000_data': 'yelp_4000_data/ratings.json',
-        # '5000_data': 'yelp_5000_data/ratings.json',
+        '1000_data': 'yelp_1000_data/ratings.json',
+        '2000_data': 'yelp_2000_data/ratings.json',
+        '3000_data': 'yelp_3000_data/ratings.json',
+        '4000_data': 'yelp_4000_data/ratings.json',
+        '5000_data': 'yelp_5000_data/ratings.json',
     }
 
     evaluation_result = pd.DataFrame(
-        columns=['data_name', 'rs', 'train_rmse', 'test_rmse', 'memory_usage', 'time_usage', 'algo'])
-
-    def wrapper(func, *args, **kwargs):
-        def wrapped():
-            return func(*args, **kwargs)
-
-        return wrapped
+        columns=['data_name', 'rs', 'train_rmse', 'test_rmse', 'time_usage', 'algo'])
 
     print('Evaluating SGD and SVD...')
     for data_name, data_path in ratings_data_path.items():
@@ -165,19 +159,17 @@ def sgd_and_svd_evaluation():
                 'test_data': test_data
             }
 
-            wrapped = wrapper(evaluate_best_parameter_sgd_performance, **parameters_sgd)
+
             start_time = time.time()
-            mem_usage = memory_usage(wrapped, retval=True)
+            train_rmse, test_rmse = evaluate_best_parameter_sgd_performance(**parameters_sgd)
             end_time = time.time()
-            mem_usage, results = mem_usage
             evaluation_result = pd.concat([
                 evaluation_result,
                 pd.DataFrame({
                     'data_name': data_name,
                     'rs': rs,
-                    'train_rmse': results[0],
-                    'test_rmse': results[1],
-                    'memory_usage': max(mem_usage),
+                    'train_rmse': train_rmse,
+                    'test_rmse': test_rmse,
                     'time_usage': end_time - start_time,
                     'algo': 'sgd'
                 }, index=[0])
@@ -187,19 +179,16 @@ def sgd_and_svd_evaluation():
                 'train_data': train_data,
                 'test_data': test_data,
             }
-            wrapped = wrapper(calculate_svd_performance, **parameters_svd)
             start_time = time.time()
-            mem_usage = memory_usage(wrapped, retval=True)
+            train_rmse, test_rmse = calculate_svd_performance(**parameters_svd)
             end_time = time.time()
-            mem_usage, results = mem_usage
             evaluation_result = pd.concat([
                 evaluation_result,
                 pd.DataFrame({
                     'data_name': data_name,
                     'rs': rs,
-                    'train_rmse': results[0],
-                    'test_rmse': results[1],
-                    'memory_usage': max(mem_usage),
+                    'train_rmse': train_rmse,
+                    'test_rmse': test_rmse,
                     'time_usage': end_time - start_time,
                     'algo': 'svd'
                 }, index=[0])

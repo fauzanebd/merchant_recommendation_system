@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 from FIX_MF import calculate_sgd_performance, train_test_split_special, calculate_svd_performance
 import time
-from memory_profiler import memory_usage
 import os
 from multiprocessing import Pool
 from functools import partial
@@ -117,20 +116,10 @@ def sgd_worker_func(args):
         'test_data': test_data
     }
     start_time = time.time()
-    wrapped = wrapper(evaluate_best_parameter_sgd_performance, **parameters_sgd)
-    mem_usage, train_rmse, test_rmse = memory_usage(wrapped, retval=True)
+    train_rmse, test_rmse = evaluate_best_parameter_sgd_performance(**parameters_sgd)
     end_time = time.time()
-    mem_usage = max(mem_usage)
     time_usage = end_time - start_time
-    return data_name, rs, train_rmse, test_rmse, time_usage, 'sgd', mem_usage
-
-def wrapper(func, *args, **kwargs):
-    def wrapped():
-        return func(*args, **kwargs)
-
-    return wrapped
-
-
+    return data_name, rs, train_rmse, test_rmse, time_usage, 'sgd'
 
 def svd_worker_func(args):
     try:
@@ -153,17 +142,15 @@ def svd_worker_func(args):
             'test_data': test_data,
         }
         start_time = time.time()
-        wrapped = wrapper(calculate_svd_performance, **parameters_svd)
-        mem_usage, train_rmse, test_rmse = memory_usage(wrapped, retval=True)
+        train_rmse, test_rmse = calculate_svd_performance(**parameters_svd)
         end_time = time.time()
         logging.info('svd performance calculated')
-        mem_usage = max(mem_usage)  # MB
         time_usage = end_time - start_time
         logging.info('svd_worker_func finished with args=%s', args)
-        return data_name, rs, train_rmse, test_rmse, time_usage, 'svd', mem_usage
+        return data_name, rs, train_rmse, test_rmse, time_usage, 'svd'
     except MemoryError:
         logging.error('Memory error occurred, args=%s', args)
-        return data_name, rs, float('nan'), float('nan'), float('nan'), 'svd', float('nan')
+        return data_name, rs, float('nan'), float('nan'), float('nan'), 'svd'
 
 def get_num_processes(data_size):
     # Change these numbers according to your resources and requirements
@@ -203,7 +190,7 @@ def sgd_and_svd_evaluation():
     }
 
     evaluation_result = pd.DataFrame(
-        columns=['data_name', 'rs', 'train_rmse', 'test_rmse', 'memory_usage', 'time_usage', 'algo'])
+        columns=['data_name', 'rs', 'train_rmse', 'test_rmse', 'time_usage', 'algo'])
 
     print('Evaluating SGD and SVD...')
 
@@ -230,7 +217,6 @@ def sgd_and_svd_evaluation():
                 'test_rmse': result[3],
                 'time_usage': result[4],
                 'algo': result[5],
-                'memory_usage': result[6]
             }, index=[0])
         ], ignore_index=True)
         evaluation_result.to_csv('evaluation_result/evaluation_result_sgd.csv', index=False)
@@ -256,8 +242,7 @@ def sgd_and_svd_evaluation():
                     'train_rmse': result[2],
                     'test_rmse': result[3],
                     'time_usage': result[4],
-                    'algo': result[5],
-                    'memory_usage': result[6]
+                    'algo': result[5]
                 }, index=[0])
             ], ignore_index=True)
             evaluation_result.to_csv('evaluation_result/evaluation_result_svd.csv', index=False)
