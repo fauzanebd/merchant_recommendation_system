@@ -19,11 +19,11 @@ def evaluate_sgd_and_svd_efficiency():
 
     ratings_data_path = {
         '100_data': 'yelp_100_data/ratings.json',
-        # '1000_data': 'yelp_1000_data/ratings.json',
-        # '2000_data': 'yelp_2000_data/ratings.json',
-        # '3000_data': 'yelp_3000_data/ratings.json',
-        # '4000_data': 'yelp_4000_data/ratings.json',
-        # '5000_data': 'yelp_5000_data/ratings.json',
+        '1000_data': 'yelp_1000_data/ratings.json',
+        '2000_data': 'yelp_2000_data/ratings.json',
+        '3000_data': 'yelp_3000_data/ratings.json',
+        '4000_data': 'yelp_4000_data/ratings.json',
+        '5000_data': 'yelp_5000_data/ratings.json',
     }
 
     # evaluation_result = pd.DataFrame(columns=['memory_usage', 'train_time', 'algo'])
@@ -34,9 +34,9 @@ def evaluate_sgd_and_svd_efficiency():
     for data_name, data_path in ratings_data_path.items():
         random_states = [
             73,
-            # 57, 89, 26, 91, 34, 10, 64, 7, 51, 95, 13,
-            # 42, 70, 18, 83, 29, 38, 76, 3, 68, 24, 49, 81,
-            # 16, 61, 5, 28, 87, 33
+            57, 89, 26, 91, 34, 10, 64, 7, 51, 95, 13,
+            42, 70, 18, 83, 29, 38, 76, 3, 68, 24, 49, 81,
+            16, 61, 5, 28, 87, 33
         ]
         ratings_data = pd.read_json(data_path)
         ratings_data.drop(columns=['ReviewID'], axis=1, inplace=True)
