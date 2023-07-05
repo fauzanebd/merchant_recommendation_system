@@ -119,6 +119,6 @@ if __name__ == '__main__':
     os.environ["RAY_DEDUP_LOGS"] = "0"
     os.environ["RAY_memory_monitor_refresh_ms"] = "0"
     # Initialize ray
-    ray.init(num_cpus=2)
+    ray.init(num_cpus=1)
 
     svd_evaluation()
