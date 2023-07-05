@@ -117,11 +117,10 @@ def sgd_worker_func(args):
         'test_data': test_data
     }
     start_time = time.time()
-    start_mem = psutil.Process(os.getpid()).memory_info().rss / (1024 ** 2)
-    train_rmse, test_rmse = evaluate_best_parameter_sgd_performance(**parameters_sgd)
-    end_mem = psutil.Process(os.getpid()).memory_info().rss / (1024 ** 2)
+    wrapped = wrapper(evaluate_best_parameter_sgd_performance, **parameters_sgd)
+    mem_usage, train_rmse, test_rmse = memory_usage(wrapped, retval=True)
     end_time = time.time()
-    mem_usage = end_mem - start_mem  # MB
+    mem_usage = max(mem_usage)
     time_usage = end_time - start_time
     return data_name, rs, train_rmse, test_rmse, time_usage, 'sgd', mem_usage
 
@@ -131,33 +130,56 @@ def wrapper(func, *args, **kwargs):
 
     return wrapped
 
+
+
 def svd_worker_func(args):
-    logging.info('Starting svd_worker_func with args=%s', args)
-    rs, data_name, data_path = args
-    ratings_data = pd.read_json(data_path)
-    ratings_data.drop(columns=['ReviewID'], axis=1, inplace=True)
-    uid_to_int = {uid: iid for iid, uid in enumerate(ratings_data['UserID'].unique())}
-    pid_to_int = {pid: iid for iid, pid in enumerate(ratings_data['PlaceID'].unique())}
-    ratings_data['UserID'] = ratings_data['UserID'].map(uid_to_int)
-    ratings_data['PlaceID'] = ratings_data['PlaceID'].map(pid_to_int)
-    train_data, test_data = train_test_split_special(
-        ratings_data,
-        test_size=.2,
-        random_state=rs
-    )
+    try:
+        logging.info('Starting svd_worker_func with args=%s', args)
+        rs, data_name, data_path = args
+        ratings_data = pd.read_json(data_path)
+        ratings_data.drop(columns=['ReviewID'], axis=1, inplace=True)
+        uid_to_int = {uid: iid for iid, uid in enumerate(ratings_data['UserID'].unique())}
+        pid_to_int = {pid: iid for iid, pid in enumerate(ratings_data['PlaceID'].unique())}
+        ratings_data['UserID'] = ratings_data['UserID'].map(uid_to_int)
+        ratings_data['PlaceID'] = ratings_data['PlaceID'].map(pid_to_int)
+        train_data, test_data = train_test_split_special(
+            ratings_data,
+            test_size=.2,
+            random_state=rs
+        )
 
-    parameters_svd = {
-        'train_data': train_data,
-        'test_data': test_data,
-    }
-    start_time = time.time()
-    wrapped = wrapper(calculate_svd_performance, **parameters_svd)
-    mem_usage, train_rmse, test_rmse = memory_usage(wrapped, retval=True)
-    mem_usage = max(mem_usage)  # MB
-    end_time = time.time()
+        parameters_svd = {
+            'train_data': train_data,
+            'test_data': test_data,
+        }
+        start_time = time.time()
+        wrapped = wrapper(calculate_svd_performance, **parameters_svd)
+        mem_usage, train_rmse, test_rmse = memory_usage(wrapped, retval=True)
+        end_time = time.time()
+        logging.info('svd performance calculated')
+        mem_usage = max(mem_usage)  # MB
+        time_usage = end_time - start_time
+        logging.info('svd_worker_func finished with args=%s', args)
+        return data_name, rs, train_rmse, test_rmse, time_usage, 'svd', mem_usage
+    except MemoryError:
+        logging.error('Memory error occurred, args=%s', args)
+        return data_name, rs, float('nan'), float('nan'), float('nan'), 'svd', float('nan')
 
-    time_usage = end_time - start_time
-    return data_name, rs, train_rmse, test_rmse, time_usage, 'svd', mem_usage
+def get_num_processes(data_size):
+    # Change these numbers according to your resources and requirements
+    if data_size <= 100:
+        return 100
+    elif data_size <= 1000:
+        return 10
+    elif data_size <= 2000:
+        return 6
+    elif data_size <= 3000:
+        return 3
+    elif data_size <= 4000:
+        return 2
+    else:  # data_size > 3000
+        return 1
+
 
 def sgd_and_svd_evaluation():
     # Find best parameters for SGD
@@ -213,25 +235,32 @@ def sgd_and_svd_evaluation():
         ], ignore_index=True)
         evaluation_result.to_csv('evaluation_result/evaluation_result_sgd.csv', index=False)
 
-    args_svd = [(rs, data_name, data_path) for data_name, data_path in ratings_data_path.items() for rs in
-                random_states]
-    with Pool(processes=2) as p:
-        results_svd = p.map(svd_worker_func, args_svd)
+    for data_name, data_path in sorted(ratings_data_path.items(), key=lambda x: int(x[0].split('_')[0])):
+        data_size = int(data_name.split('_')[0])  # get the size from the data_name
+        num_processes = get_num_processes(data_size)
+        args_svd = [(rs, data_name, data_path) for rs in random_states]
+        if num_processes == 100:
+            with Pool() as p:
+                results_svd = p.map(svd_worker_func, args_svd)
+        else:
+            print(f'Using {num_processes} processes')
+            with Pool(processes=num_processes) as p:
+                results_svd = p.map(svd_worker_func, args_svd)
 
-    for result in results_svd:
-        evaluation_result = pd.concat([
-            evaluation_result,
-            pd.DataFrame({
-                'data_name': result[0],
-                'rs': result[1],
-                'train_rmse': result[2],
-                'test_rmse': result[3],
-                'time_usage': result[4],
-                'algo': result[5],
-                'memory_usage': result[6]
-            }, index=[0])
-        ], ignore_index=True)
-        evaluation_result.to_csv('evaluation_result/evaluation_result_svd.csv', index=False)
+        for result in results_svd:
+            evaluation_result = pd.concat([
+                evaluation_result,
+                pd.DataFrame({
+                    'data_name': result[0],
+                    'rs': result[1],
+                    'train_rmse': result[2],
+                    'test_rmse': result[3],
+                    'time_usage': result[4],
+                    'algo': result[5],
+                    'memory_usage': result[6]
+                }, index=[0])
+            ], ignore_index=True)
+            evaluation_result.to_csv('evaluation_result/evaluation_result_svd.csv', index=False)
 
     print(f"Finished evaluating SGD and SVD")
     logging.info('Finished evaluating SGD and SVD')
