@@ -58,7 +58,7 @@ def get_num_processes(data_size):
     elif data_size <= 4000:
         return 4
     else:  # data_size > 3000
-        return 1
+        return 2
 
 
 def svd_evaluation():
