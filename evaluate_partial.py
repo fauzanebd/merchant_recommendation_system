@@ -12,32 +12,37 @@ import logging
 
 
 def svd_worker_func(args):
-    logging.info('Starting svd_worker_func with args=%s', args)
-    rs, data_name, data_path = args
-    ratings_data = pd.read_json(data_path)
-    ratings_data.drop(columns=['ReviewID'], axis=1, inplace=True)
-    uid_to_int = {uid: iid for iid, uid in enumerate(ratings_data['UserID'].unique())}
-    pid_to_int = {pid: iid for iid, pid in enumerate(ratings_data['PlaceID'].unique())}
-    ratings_data['UserID'] = ratings_data['UserID'].map(uid_to_int)
-    ratings_data['PlaceID'] = ratings_data['PlaceID'].map(pid_to_int)
-    train_data, test_data = train_test_split_special(
-        ratings_data,
-        test_size=.2,
-        random_state=rs
-    )
+    try:
+        logging.info('Starting svd_worker_func with args=%s', args)
+        rs, data_name, data_path = args
+        ratings_data = pd.read_json(data_path)
+        ratings_data.drop(columns=['ReviewID'], axis=1, inplace=True)
+        uid_to_int = {uid: iid for iid, uid in enumerate(ratings_data['UserID'].unique())}
+        pid_to_int = {pid: iid for iid, pid in enumerate(ratings_data['PlaceID'].unique())}
+        ratings_data['UserID'] = ratings_data['UserID'].map(uid_to_int)
+        ratings_data['PlaceID'] = ratings_data['PlaceID'].map(pid_to_int)
+        train_data, test_data = train_test_split_special(
+            ratings_data,
+            test_size=.2,
+            random_state=rs
+        )
 
-    parameters_svd = {
-        'train_data': train_data,
-        'test_data': test_data,
-    }
-    start_time = time.time()
-    start_mem = psutil.Process(os.getpid()).memory_info().rss / (1024 ** 2)
-    train_rmse, test_rmse = calculate_svd_performance(**parameters_svd)
-    end_mem = psutil.Process(os.getpid()).memory_info().rss / (1024 ** 2)
-    end_time = time.time()
-    mem_usage = end_mem - start_mem  # MB
-    time_usage = end_time - start_time
-    return data_name, rs, train_rmse, test_rmse, time_usage, 'svd', mem_usage
+        parameters_svd = {
+            'train_data': train_data,
+            'test_data': test_data,
+        }
+        start_time = time.time()
+        start_mem = psutil.Process(os.getpid()).memory_info().rss
+        train_rmse, test_rmse = calculate_svd_performance(**parameters_svd)
+        end_mem = psutil.Process(os.getpid()).memory_info().rss
+        end_time = time.time()
+        mem_usage = end_mem - start_mem  #
+        time_usage = end_time - start_time
+        return data_name, rs, train_rmse, test_rmse, time_usage, 'svd', mem_usage
+    except MemoryError:
+        logging.error('Memory error occurred, args=%s', args)
+        return data_name, rs, float('nan'), float('nan'), float('nan'), 'svd', float('nan')
+
 
 
 def get_num_processes(data_size):
@@ -51,7 +56,7 @@ def get_num_processes(data_size):
     elif data_size <= 3000:
         return 5
     else:  # data_size > 3000
-        return 4
+        return 3
 
 
 def svd_evaluation():
@@ -59,10 +64,10 @@ def svd_evaluation():
     logging.info('Starting svd_evaluation')
 
     ratings_data_path = {
-        '100_data': 'yelp_100_data/ratings.json',
-        '1000_data': 'yelp_1000_data/ratings.json',
-        '2000_data': 'yelp_2000_data/ratings.json',
-        '3000_data': 'yelp_3000_data/ratings.json',
+        # '100_data': 'yelp_100_data/ratings.json',
+        # '1000_data': 'yelp_1000_data/ratings.json',
+        # '2000_data': 'yelp_2000_data/ratings.json',
+        # '3000_data': 'yelp_3000_data/ratings.json',
         '4000_data': 'yelp_4000_data/ratings.json',
         '5000_data': 'yelp_5000_data/ratings.json',
     }
