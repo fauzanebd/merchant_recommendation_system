@@ -13,7 +13,8 @@ import ray
 @ray.remote
 def svd_worker_func(args):
     try:
-        logging.info('Starting svd_worker_func with args=%s', args)
+        # logging.info('Starting svd_worker_func with args=%s', args)
+        print('Starting svd_worker_func with args=%s', args)
         rs, data_name, data_path = args
         ratings_data = pd.read_json(data_path)
         ratings_data.drop(columns=['ReviewID'], axis=1, inplace=True)
@@ -38,7 +39,8 @@ def svd_worker_func(args):
         end_time = time.time()
         mem_usage = end_mem - start_mem  #
         time_usage = end_time - start_time
-        logging.info('Finished svd_worker_func with args=%s', args)
+        # logging.info('Finished svd_worker_func with args=%s', args)
+        print('Finished svd_worker_func with args=%s', args)
         return data_name, rs, train_rmse, test_rmse, time_usage, 'svd', mem_usage
     except MemoryError:
         logging.error('Memory error occurred, args=%s', args)
