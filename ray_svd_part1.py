@@ -66,9 +66,11 @@ def svd_evaluation():
     print('Evaluating SVD...')
 
     random_states = [
-        73, 57, 89, 26, 91, 34, 10, 64, 7, 51, 95, 13,
-        42, 70, 18, 83, 29, 38, 76, 3, 68, 24, 49, 81,
-        16, 61, 5, 28, 87, 33
+        73, 57, 89, 26, 91, 34,
+        # 10, 64, 7, 51, 95, 13,
+        # 42, 70, 18, 83, 29, 38,
+        # 76, 3, 68, 24, 49, 81,
+        # 16, 61, 5, 28, 87, 33
     ]
 
     for data_name, data_path in sorted(ratings_data_path.items(), key=lambda x: int(x[0].split('_')[0])):
@@ -88,7 +90,7 @@ def svd_evaluation():
                     'memory_usage': result[6]
                 }, index=[0])
             ], ignore_index=True)
-            evaluation_result.to_csv('evaluation_result/evaluation_result_svd_5k.csv', index=False)
+            evaluation_result.to_csv('evaluation_result/evaluation_result_svd_5k_part1.csv', index=False)
 
         # args_svd = [(rs, data_name, data_path) for rs in random_states]
         # results_svd = ray.get([svd_worker_func.remote(arg) for arg in args_svd])
